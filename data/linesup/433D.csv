@@ -1,0 +1,12 @@
+init_player,DM,,,,,
+GK,CBR,CBL,,,,
+LB,CBL,DM,,,,
+CBL,GK,CBR,DM,LB,,
+CBR,GK,CBL,DM,RB,,
+RB,CBR,DM,,,,
+DM,LB,CBL,CBR,RB,CML,CMR
+CML,CMR,DM,LW,,,
+CMR,CML,DM,RW,,,
+LW,CML,FW,,,,
+RW,CMR,FW,,,,
+FW,LW,RW,,,,
