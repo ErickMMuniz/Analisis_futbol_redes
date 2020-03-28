@@ -105,13 +105,14 @@ def read_all_shooting():
     """
     return os.listdir("data//shooting")
 
-def get_all_data_team_passing(team):
+def get_all_data_team_passing_shooting(team):
     """
     Función que regresa un diccionario con la llave POS y llave Player respectivo.
     :param team:
     :return: Dictionary
     """
     root = team[6:]
+    name_team = root[:-4]
     dic_final = {}
     #Para pases
     with open('data//passing//Pases_{}'.format(root), newline='') as csvfile:
@@ -121,16 +122,23 @@ def get_all_data_team_passing(team):
                 name = row[0]
                 pos = row[1]
                 medium = float(row[14])
+                total_medium = float(row[15])
                 large =  float(row[17])
-                dic_stats = {"passing":{"medium":medium,"large":large}}
-                dic_final[pos] = Player.Player(name,pos,dic_stats)
+                total_large = float(row[18])
+                dic_stats = {"passing":{"medium":{"complete":medium,"total":total_medium},
+                                        "large":{"complete":large,"total":total_large}
+                                        }
+                             }
+                dic_final[pos] = Player.Player(name,pos,name_team,dic_stats)
     with open('data//shooting//Tiros_{}'.format(root), newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
             if row[0] != "" and row[0] != "Player":
                 pos = row[1]
-                shoot = float(row[7])
-                dic_final[pos].stats["shooting"] = shoot
+                shoot = float(row[8])
+                total_shoot = float(row[7])
+                shooting = {"complete":shoot,"total":total_shoot}
+                dic_final[pos].stats["shooting"] = shooting
     return dic_final
 
 """
@@ -138,8 +146,3 @@ def get_all_data_team_passing(team):
 - END DATA TEAM
 ----------------
 """
-
-
-
-if __name__ == '__main__':
-    print(get_all_data_team_passing("Tiros_EUA.csv"))

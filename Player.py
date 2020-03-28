@@ -12,10 +12,11 @@ class Player():
     """
     Clase que define a un jugador
     """
-    def __init__(self, name,pos,stats):
+    def __init__(self, name,pos,name_team,stats):
         self.name = name
         self.pos = pos
         self.stats = stats
+        self.name_team = name_team
         self.balon = None
         self.count_balon = 0
 
