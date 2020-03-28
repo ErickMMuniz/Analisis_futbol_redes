@@ -11,7 +11,7 @@ lu: 27/04/20
 import networkx as nx
 import readata
 from random import random, choice
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 """
 ------------------------
@@ -93,6 +93,17 @@ def get_vecinos_versus(G,node):
     """
     return get_vecinos_medium(G,node)
 
+def count_edge_dic(dic_team,edge):
+    """
+    Función que cuenta los pases
+    :param dic_team:
+    :param edge:
+    :return:
+    """
+    if edge in dic_team:
+        dic_team[edge] += 1
+    else:
+        dic_team[edge] = 1
 
 """
 ------------------------
@@ -134,7 +145,11 @@ def game(lineupA,lineupB, teamA, teamB,N):
                   }
     #INFORMACIÓN FINAL
     b_path = []
+    dic_edge_A = {}
+    dic_edge_B = {}
 
+    dic_team = {team_data_a[init_a].name_team:dic_edge_A,
+                team_data_b[init_b].name_team:dic_edge_B}
 
     #SIEMPRE INICIA A
     p_path = team_data_a[init_a]
@@ -164,7 +179,10 @@ def game(lineupA,lineupB, teamA, teamB,N):
                 #GOL
 
                 #AQUI MARCAMOS EL GOL
-                goal_node = join_player_team("*GOAL*", p_path.name_team)
+                edge = (pos,"GOAL")
+                count_edge_dic(dic_team[p_path.name_team],edge)
+
+                goal_node = join_player_team("GOAL", p_path.name_team)
                 b_path.append(goal_node)
 
                 #PASAMOS AL OTRO EQUIPO
@@ -174,6 +192,9 @@ def game(lineupA,lineupB, teamA, teamB,N):
                 b_path.append(join_player_team(p_path.pos, p_path.name_team))
             else:
                 #NO GOL
+                edge = (pos, "FAIL")
+                count_edge_dic(dic_team[p_path.name_team], edge)
+
                 team_change = team_graph[p_path.name_team]["versus"]
                 pos_init_change = "GK"
                 p_path = team_graph[team_change]["team_data"][pos_init_change]
@@ -198,6 +219,9 @@ def game(lineupA,lineupB, teamA, teamB,N):
                     continue
                 if random() < p:
                     #PASE COMPLETO (ME MANTENGO EN EL EQUIPO
+                    edge = (pos, next_pos)
+                    count_edge_dic(dic_team[p_path.name_team], edge)
+
                     p_path = team_graph[p_path.name_team]["team_data"][next_pos]
                     b_path.append(join_player_team(p_path.pos, p_path.name_team))
                 else:
@@ -229,6 +253,9 @@ def game(lineupA,lineupB, teamA, teamB,N):
                     continue
                 if random() < p:
                     # PASE COMPLETO (ME MANTENGO EN EL EQUIPO
+                    edge = (pos, next_pos)
+                    count_edge_dic(dic_team[p_path.name_team], edge)
+
                     p_path = team_graph[p_path.name_team]["team_data"][next_pos]
                     b_path.append(join_player_team(p_path.pos, p_path.name_team))
                 else:
@@ -250,19 +277,7 @@ def game(lineupA,lineupB, teamA, teamB,N):
                         p_path = team_graph[team_change]["team_data"][next_pos]
                         b_path.append(join_player_team(p_path.pos, p_path.name_team))
 
-    return b_path
-
-
-
-
-
-
-
-
+    return b_path, dic_team
 
 if __name__ == '__main__':
-    print(len(game("433D.csv","433A.csv", "Pases_EUA.csv","Pases_Holanda.csv",1000)))
-    #team_data_a = readata.get_all_data_team_passing_shooting("Pases_EUA.csv")
-    #team_data_b = readata.get_all_data_team_passing_shooting("Pases_Holanda.csv")
-    #print(len(team_data_b))
-    #print(len(team_data_a))
+    print(game("433D.csv","433A.csv", "Pases_EUA.csv","Pases_Holanda.csv",1000)[1])
