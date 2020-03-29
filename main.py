@@ -7,11 +7,27 @@ SEMINARIO DE MATEMÁTICAS APLICADAS
 
 lu: 27/04/20
 """
+import collections
 
-import networkx as nx
 import readata
+import networkx as nx
+import matplotlib.pyplot as plt
 from random import random, choice
-#import matplotlib.pyplot as plt
+
+pos_dic_EUA = {"GK": (3,0),
+               "LB": (1,1),
+               "CBL": (2,1),
+               "CBR": (4,1),
+               "RB": (5,1),
+               "DM": (3,2),
+               "CML": (2,3),
+               "CMR": (4,3),
+               "FW": (3,5),
+               "LW": (1,4),
+               "RW": (5,4),
+               "FAIL": (2,7),
+               "GOAL": (4,7)}
+
 
 """
 ------------------------
@@ -46,6 +62,16 @@ def gen_graph_list(list_edges):
     G = nx.Graph()
     G.add_edges_from(list_edges)
     return G
+
+def gen_digraph_list_weight(list_edges):
+    """
+    Función que genera una gráfica dirigida con pesos
+    :param list_edges:
+    :return:
+    """
+    D = nx.DiGraph()
+    D.add_edges_from(list_edges)
+    return D
 
 def get_nodes_str(G):
     """
@@ -105,9 +131,40 @@ def count_edge_dic(dic_team,edge):
     else:
         dic_team[edge] = 1
 
+def get_directed_list_digraph(dic_team):
+    """
+    Función auxiliar para obtener una lista de
+                [(SOURCE , TARGET , {"WEIGHT" : PASES})]
+    :param dic_team:
+    :return: list
+    """
+    list_final_digraph = []
+    for edge in dic_team:
+        pases = dic_team[edge]
+        list_final_digraph.append((edge[0],edge[1],{"weight":pases}) )
+    return list_final_digraph
+
+def plot_fancy_graph(Dg, formation):
+
+    plt.show()
+
 """
 ------------------------
 - END AUXILIAR FUNCTIONS
+------------------------
+"""
+
+
+"""
+------------------------
+- BEGIN ANALISYS FUNCTIONS
+------------------------
+"""
+
+
+"""
+------------------------
+- END ANALISYS FUNCTIONS
 ------------------------
 """
 
@@ -277,7 +334,46 @@ def game(lineupA,lineupB, teamA, teamB,N):
                         p_path = team_graph[team_change]["team_data"][next_pos]
                         b_path.append(join_player_team(p_path.pos, p_path.name_team))
 
-    return b_path, dic_team
+    return b_path, dic_team, team_graph
 
 if __name__ == '__main__':
-    print(game("433D.csv","433A.csv", "Pases_EUA.csv","Pases_Holanda.csv",1000)[1])
+    A = game("433D.csv","433A.csv", "Pases_EUA.csv","Pases_Holanda.csv",500)[1]
+    print(A["EUA"])
+    c = get_directed_list_digraph(A["EUA"])
+    a = gen_digraph_list_weight(c)
+
+    pos_dic_EUA = {"GK": (3,0),
+               "LB": (1,1),
+               "CBL": (2,1),
+               "CBR": (4,1),
+               "RB": (5,1),
+               "DM": (3,2),
+               "CML": (2,3),
+               "CMR": (4,3),
+               "FW": (3,5),
+               "LW": (1,4),
+               "RW": (5,4),
+               "FAIL": (2,7),
+               "GOAL": (4,7)}
+    #suma = np.sum(a[u][v]['weight'] for u, v in a.edges)
+    #weights = [a[u][v]['weight'] for u, v in a.edges]
+    #nx.draw(a, with_labels="TRUE", width=weights, pos=pos_dic_EUA)
+    #plt.show()
+    print(nx.degree(a))
+
+    G = a
+    degree_sequence = sorted([d for n, d in G.degree()], reverse=True)  # degree sequence
+    # print "Degree sequence", degree_sequence
+    degreeCount = collections.Counter(degree_sequence)
+    deg, cnt = zip(*degreeCount.items())
+
+    fig, ax = plt.subplots()
+    plt.bar(deg, cnt, width=0.80, color='b')
+
+    plt.title("Degree Histogram")
+    plt.ylabel("Count")
+    plt.xlabel("Degree")
+    ax.set_xticks([d + 0.4 for d in deg])
+    ax.set_xticklabels(deg)
+
+    plt.show()
