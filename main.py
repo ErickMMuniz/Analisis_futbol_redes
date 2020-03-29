@@ -14,7 +14,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from random import random, choice
 
-pos_dic_EUA = {"GK": (3,0),
+pos_dic_433D = {"GK": (3,0),
                "LB": (1,1),
                "CBL": (2,1),
                "CBR": (4,1),
@@ -144,9 +144,7 @@ def get_directed_list_digraph(dic_team):
         list_final_digraph.append((edge[0],edge[1],{"weight":pases}) )
     return list_final_digraph
 
-def plot_fancy_graph(Dg, formation):
 
-    plt.show()
 
 """
 ------------------------
@@ -154,12 +152,83 @@ def plot_fancy_graph(Dg, formation):
 ------------------------
 """
 
+def make_table_analysis_players_team(G,team_data):
+    """
+
+    :param G: graph
+    :param team_data: dic[ pos] = Player
+    :return:
+    """
+
+    #EN LOS DATOS SÍ SE CUENTA EL GOL Y FAIL PARA CÁLCULOS
+
+    degree = G.degree
+    degree_centrality = nx.degree_centrality(D)
+    betweenness_centrality = nx.betweenness_centrality(D)
+    closeness_centrality = nx.closeness_centrality(D)
+    eigenvector_centrality = nx.eigenvector_centrality(D)
+    pagerank_centrality = nx.pagerank(D)
+
+    clustering_data = nx.clustering(D)
+    print("*******TABLA******")
+    print("NAME"+"&",
+          "POS"+"&",
+          "DEGREE"+"&",
+          "DEGRE_C"+"&",
+          "BETW"+"&",
+          "CLOSE_C"+"&",
+          "EIGEN_C"+"&",
+          "PAGERANK"+"&",
+          "CLUSTERING"+"\\")
+    for p_pos in team_data:
+        player = team_data[p_pos]
+        player_name = player.name
+        player_pos = player.pos
+        player_degree = str(degree[player_pos]) + "&"
+        player_degree_c = str(degree_centrality[player_pos]) + "&"
+        player_betwee_c = str(betweenness_centrality[player_pos]) + "&"
+        player_closeness_c = str(closeness_centrality[player_pos]) + "&"
+        player_eigen_c = str(eigenvector_centrality[player_pos]) + "&"
+        player_pagerank = str(pagerank_centrality[player_pos]) + "&"
+        player_clustering = str(clustering_data[player_pos]) + "\\"
+        print(player_name+ "&",
+                  player_pos + "&",
+                  player_degree,
+                  player_degree_c,
+                  player_betwee_c,
+                  player_closeness_c,
+                  player_eigen_c,
+                  player_pagerank,
+                  player_clustering)
 
 """
 ------------------------
 - BEGIN ANALISYS FUNCTIONS
 ------------------------
 """
+
+
+def plot_fancy_graph(Dg, formation):
+    weights = [Dg[u][v]['weight'] for u, v in Dg.edges]
+    nx.draw(Dg, with_labels="TRUE", width=weights, pos=formation)
+    plt.show()
+    plt.show()
+
+
+def plot_degre_distribution(G):
+    degree_sequence = sorted([d for n, d in G.degree()], reverse=True)
+    degreeCount = collections.Counter(degree_sequence)
+    deg, cnt = zip(*degreeCount.items())
+    fig, ax = plt.subplots()
+    plt.bar(deg, cnt, width=0.80, color='b')
+
+    plt.title("Degree Histogram")
+    plt.ylabel("Count")
+    plt.xlabel("Degree")
+    ax.set_xticks([d + 0.4 for d in deg])
+    ax.set_xticklabels(deg)
+
+    plt.show()
 
 
 """
@@ -337,43 +406,14 @@ def game(lineupA,lineupB, teamA, teamB,N):
     return b_path, dic_team, team_graph
 
 if __name__ == '__main__':
-    A = game("433D.csv","433A.csv", "Pases_EUA.csv","Pases_Holanda.csv",500)[1]
-    print(A["EUA"])
-    c = get_directed_list_digraph(A["EUA"])
-    a = gen_digraph_list_weight(c)
+    A = game("433D.csv","433A.csv", "Pases_Liverpool.csv","Pases_Tottenham.csv",800)
+    juego = A[1]
+    #print(juego["EUA"])
 
-    pos_dic_EUA = {"GK": (3,0),
-               "LB": (1,1),
-               "CBL": (2,1),
-               "CBR": (4,1),
-               "RB": (5,1),
-               "DM": (3,2),
-               "CML": (2,3),
-               "CMR": (4,3),
-               "FW": (3,5),
-               "LW": (1,4),
-               "RW": (5,4),
-               "FAIL": (2,7),
-               "GOAL": (4,7)}
-    #suma = np.sum(a[u][v]['weight'] for u, v in a.edges)
-    #weights = [a[u][v]['weight'] for u, v in a.edges]
-    #nx.draw(a, with_labels="TRUE", width=weights, pos=pos_dic_EUA)
-    #plt.show()
-    print(nx.degree(a))
+    c = get_directed_list_digraph(juego["EUA"])
+    D = gen_digraph_list_weight(c)
 
-    G = a
-    degree_sequence = sorted([d for n, d in G.degree()], reverse=True)  # degree sequence
-    # print "Degree sequence", degree_sequence
-    degreeCount = collections.Counter(degree_sequence)
-    deg, cnt = zip(*degreeCount.items())
+    make_table_analysis_players_team(D, A[2]["EUA"]["team_data"])
+    plot_fancy_graph(D,pos_dic_433D)
 
-    fig, ax = plt.subplots()
-    plt.bar(deg, cnt, width=0.80, color='b')
-
-    plt.title("Degree Histogram")
-    plt.ylabel("Count")
-    plt.xlabel("Degree")
-    ax.set_xticks([d + 0.4 for d in deg])
-    ax.set_xticklabels(deg)
-
-    plt.show()
+    plot_degre_distribution(D)
