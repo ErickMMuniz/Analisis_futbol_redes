@@ -28,6 +28,20 @@ pos_dic_433D = {"GK": (3,0),
                "FAIL": (2,7),
                "GOAL": (4,7)}
 
+pos_dic_433A = {"GK": (3,0),
+               "LB": (1,1),
+               "CBL": (2,1),
+               "CBR": (4,1),
+               "RB": (5,1),
+               "AM": (3,4),
+               "CML": (2,3),
+               "CMR": (4,3),
+               "FW": (3,6),
+               "LW": (1,5),
+               "RW": (5,5),
+               "FAIL": (2,8),
+               "GOAL": (4,8)}
+
 
 """
 ------------------------
@@ -163,13 +177,13 @@ def make_table_analysis_players_team(G,team_data):
     #EN LOS DATOS SÍ SE CUENTA EL GOL Y FAIL PARA CÁLCULOS
 
     degree = G.degree
-    degree_centrality = nx.degree_centrality(D)
-    betweenness_centrality = nx.betweenness_centrality(D)
-    closeness_centrality = nx.closeness_centrality(D)
-    eigenvector_centrality = nx.eigenvector_centrality(D)
-    pagerank_centrality = nx.pagerank(D)
+    degree_centrality = nx.degree_centrality(G)
+    betweenness_centrality = nx.betweenness_centrality(G)
+    closeness_centrality = nx.closeness_centrality(G)
+    eigenvector_centrality = nx.eigenvector_centrality(G)
+    pagerank_centrality = nx.pagerank(G)
 
-    clustering_data = nx.clustering(D)
+    clustering_data = nx.clustering(G)
     print("*******TABLA******")
     print("NAME"+"&",
           "POS"+"&",
@@ -208,10 +222,10 @@ def make_table_analysis_players_team(G,team_data):
 """
 
 
-def plot_fancy_graph(Dg, formation):
+def plot_fancy_graph(Dg,name_team, formation):
     weights = [Dg[u][v]['weight'] for u, v in Dg.edges]
+    plt.title(name_team)
     nx.draw(Dg, with_labels="TRUE", width=weights, pos=formation)
-    plt.show()
     plt.show()
 
 
@@ -406,14 +420,17 @@ def game(lineupA,lineupB, teamA, teamB,N):
     return b_path, dic_team, team_graph
 
 if __name__ == '__main__':
-    A = game("433D.csv","433A.csv", "Pases_Liverpool.csv","Pases_Tottenham.csv",800)
-    juego = A[1]
-    #print(juego["EUA"])
+    A = game("433D.csv", "433A.csv", "Pases_EUA.csv", "Pases_Holanda.csv", 1000)
+    #A = game("433D.csv","433A.csv", "Pases_Liverpool.csv","Pases_Tottenham.csv",1000)
 
-    c = get_directed_list_digraph(juego["EUA"])
+    juego = A[1]
+
+    team_view = "Holanda"
+    c = get_directed_list_digraph(juego[team_view])
     D = gen_digraph_list_weight(c)
 
-    make_table_analysis_players_team(D, A[2]["EUA"]["team_data"])
-    plot_fancy_graph(D,pos_dic_433D)
+    make_table_analysis_players_team(D, A[2][team_view]["team_data"])
+
+    plot_fancy_graph(D,team_view,pos_dic_433A)
 
     plot_degre_distribution(D)
