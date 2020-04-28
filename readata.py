@@ -11,6 +11,8 @@ lu: 27/04/20
 import csv
 import os
 import Player
+import io
+from itertools import combinations
 """
 ----------------
 - BEGIN READ LINE UP
@@ -45,6 +47,9 @@ def get_lineup(lup):
                         continue
     dic_final["lineup"] = line_up_list
     return dic_final
+
+
+
 """
 ----------------
 - END READ LINE UP
@@ -90,6 +95,34 @@ def get_versus(lup1,lup2):
 - BEGIN DATA TEAM
 ----------------
 """
+def get_lineup_team_hombres():
+    """
+    Función que da el diccionario con el nombre del equipo y su formación
+    :param lup: String
+    :return: dic con esa info
+    """
+    dic_final = {}
+    with open('data//Premier_League_2018-2019//EquiposYFormaciones.csv', newline='',encoding='utf-8') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        for row in spamreader:
+            dic_final[row[0]] = row[1]
+    return dic_final
+
+def get_lineup_team_mujeres():
+    """
+    Función que da el diccionario con el nombre del equipo y su formación
+    :param lup: String
+    :return: dic con esa info
+    """
+    dic_final = {}
+    line_up_list = []
+    with open('data//Mundial_Femenil_2019//PaisesYFormaciones.csv', newline='',encoding='utf-8') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        for row in spamreader:
+            dic_final[row[0]] = row[1]
+    return dic_final
+
+
 
 def read_all_passing():
     """
@@ -111,11 +144,12 @@ def get_all_data_team_passing_shooting(team):
     :param team:
     :return: Dictionary
     """
+    print(team)
     root = team[6:]
     name_team = root[:-4]
     dic_final = {}
     #Para pases
-    with open('data//passing//Pases_{}'.format(root), newline='') as csvfile:
+    with open('data//passing//Pases_{}'.format(root), newline='',encoding='utf-8') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
             if row[0] != "" and row[0] != "Player":
@@ -130,7 +164,7 @@ def get_all_data_team_passing_shooting(team):
                                         }
                              }
                 dic_final[pos] = Player.Player(name,pos,name_team,dic_stats)
-    with open('data//shooting//Tiros_{}'.format(root), newline='') as csvfile:
+    with io.open('data//shooting//Tiros_{}'.format(root), newline='',encoding='utf-8') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
             if row[0] != "" and row[0] != "Player":
@@ -146,3 +180,9 @@ def get_all_data_team_passing_shooting(team):
 - END DATA TEAM
 ----------------
 """
+
+if __name__ == '__main__':
+    A = combinations(get_lineup_team_hombres(),2)
+    print(len(get_lineup_team_hombres()))
+    #rint(get_lineup_team_mujeres())
+    print("Acabé")

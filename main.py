@@ -13,6 +13,9 @@ import readata
 import networkx as nx
 import matplotlib.pyplot as plt
 from random import random, choice
+from itertools import combinations
+
+N = 1000
 
 pos_dic_433D = {"GK": (3,0),
                "LB": (1,1),
@@ -379,9 +382,16 @@ def game(lineupA,lineupB, teamA, teamB,N):
                     except:
                         singulete_af = set()
                         singulete_af.add(next_pos)
-                        next_pos = choice(list(set(versus) - singulete_af))
-                        p_path = team_graph[team_change]["team_data"][next_pos]
-                        b_path.append(join_player_team(p_path.pos, p_path.name_team))
+                        try:
+                            next_pos = choice(list(set(versus) - singulete_af))
+                        except:
+                            continue
+                        try:
+                            p_path = team_graph[team_change]["team_data"][next_pos]
+                            b_path.append(join_player_team(p_path.pos, p_path.name_team))
+                        except:
+                            pos_init_change = team_graph[team_change]["init"]
+                            p_path = team_graph[team_change]["team_data"][pos_init_change]
             else:
                 #PASE LARGO
                 vecinos = get_vecinos_large(lineup, pos)
@@ -419,7 +429,64 @@ def game(lineupA,lineupB, teamA, teamB,N):
 
     return b_path, dic_team, team_graph
 
+
+def simulate_hombres():
+    team_lineup = readata.get_lineup_team_hombres()
+    team_macth = combinations(team_lineup, 2)
+    games = {}
+    for team in team_lineup.keys():
+        games[team] = []
+
+    for macth in team_macth:
+        print("juego----", macth[0],"vs", macth[1])
+        teamA = "Pases_{}.csv".format(macth[0])
+        teamB = "Pases_{}.csv".format(macth[1])
+
+        lineupA = team_lineup[macth[0]] + ".csv"
+        lineupB = team_lineup[macth[1]] + ".csv"
+
+        macth_game = game(lineupA, lineupB,teamA, teamB, N)
+
+        games[macth[0]].append( gen_digraph_list_weight(get_directed_list_digraph(macth_game[1][macth[0]])))
+        games[macth[1]].append( gen_digraph_list_weight(get_directed_list_digraph(macth_game[1][macth[1]])))
+
+    return games
+
+
+
+
+
+def simulate_mujeres():
+    team_lineup = readata.get_lineup_team_mujeres()
+    team_macth = combinations(team_lineup, 2)
+
+    games = {}
+    for team in team_lineup.keys():
+        games[team] = []
+
+    for macth in team_macth:
+        print("juego----", macth[0], "vs", macth[1])
+        teamA = "Pases_{}.csv".format(macth[0])
+        teamB = "Pases_{}.csv".format(macth[1])
+
+        lineupA = team_lineup[macth[0]] + ".csv"
+        lineupB = team_lineup[macth[1]] + ".csv"
+
+        macth_game = game(lineupA, lineupB, teamA, teamB, N)
+
+        games[macth[0]].append(macth_game[1][macth[0]])
+        games[macth[1]].append(macth_game[1][macth[1]])
+
+    return games
+
 if __name__ == '__main__':
+
+    teams_hombres = simulate_hombres()
+
+    for team in teams_hombres:
+        print(team)
+        print(teams_hombres[team][0].edges)
+    """
     A = game("433D.csv", "433A.csv", "Pases_EUA.csv", "Pases_Holanda.csv", 1000)
     #A = game("433D.csv","433A.csv", "Pases_Liverpool.csv","Pases_Tottenham.csv",1000)
 
@@ -434,3 +501,4 @@ if __name__ == '__main__':
     plot_fancy_graph(D,team_view,pos_dic_433A)
 
     plot_degre_distribution(D)
+    """
