@@ -1,12 +1,13 @@
-Player,Pos,Age,90s,Gls,PK,PKatt,Sh,SoT,FK,SoT%,Sh/90,SoT/90,G/Sh,G/SoT,xG
-Alyssa Naeher,GK,31,7,0,0,0,0,0,0,,0,0,,,0
-Abby Dahlkemper,CBR,26,6.9,0,0,0,0,0,0,,0,0,,,0
-Crystal Dunn,LB,26,6,0,0,0,7,3,0,42.9,1.17,0.5,0,0,0.5
-Becky Sauerbrunn,CBL,34,6,0,0,0,1,0,0,0,0.17,0,0,,0.1
-Tobin Heath,RW,31,5.5,0,0,0,4,1,0,25,0.73,0.18,0,0,0.2
-Kelley O'Hara,RB,30,5.5,0,0,0,0,0,0,,0,0,,,0
-Alex Morgan,FW,29,5.4,6,0,0,20,11,0,55,3.67,02.02,0.3,0.55,2.9
-Julie Ertz,DM,27,5.3,1,0,0,12,3,0,25,2.28,0.57,0.08,0.33,0.7
-Rose Lavelle,CMR,24,4.7,3,0,0,14,6,0,42.9,2.95,1.26,0.21,0.5,1.2
-Sam Mewis,CML,26,5.2,2,0,0,16,7,0,43.8,03.08,1.35,0.13,0.29,1
-Megan Rapinoe,LW,33,4.8,6,3,3,10,3,1,30,2.1,0.63,0.3,1,3.7
+,,,,Standard,,,,,,,,,,,Expected,,,,,
+Player,Pos,Age,90s,Gls,PK,PKatt,Sh,SoT,FK,SoT%,Sh/90,SoT/90,G/Sh,G/SoT,xG,npxG,npxG/Sh,G-xG,np:G-xG,Matches
+Alyssa Naeher,GK,31,7.0,0,0,0,0,0,0,,0.00,0.00,,,0.0,0.0,,0.0,0.0,Matches
+Abby Dahlkemper,CBR,26,6.9,0,0,0,0,0,0,,0.00,0.00,,,0.0,0.0,,0.0,0.0,Matches
+Crystal Dunn,LB,26,6.0,0,0,0,7,3,0,42.9,1.17,0.50,0.00,0.00,0.5,0.5,0.07,-0.5,-0.5,Matches
+Becky Sauerbrunn,CBL,34,6.0,0,0,0,1,0,0,0.0,0.17,0.00,0.00,,0.1,0.1,0.07,-0.1,-0.1,Matches
+Tobin Heath,RW,31,5.5,0,0,0,4,1,0,25.0,0.73,0.18,0.00,0.00,0.2,0.2,0.05,-0.2,-0.2,Matches
+Kelley O'Hara,RB,30,5.5,0,0,0,0,0,0,,0.00,0.00,,,0.0,0.0,,0.0,0.0,Matches
+Alex Morgan,FW,29,5.4,6,0,0,20,11,0,55.0,3.67,02.02,0.30,0.55,2.9,2.9,0.14,#ERROR!,#ERROR!,Matches
+Julie Ertz,DM,27,5.3,1,0,0,12,3,0,25.0,2.28,0.57,0.08,0.33,0.7,0.7,0.06,#ERROR!,#ERROR!,Matches
+Rose Lavelle,CMR,24,4.7,3,0,0,14,6,0,42.9,2.95,1.26,0.21,0.50,1.2,1.2,0.09,#ERROR!,#ERROR!,Matches
+Sam Mewis,CML,26,5.2,2,0,0,16,7,0,43.8,03.08,1.35,0.13,0.29,1.0,1.0,0.06,#ERROR!,#ERROR!,Matches
+Megan Rapinoe,LW,33,4.8,6,3,3,10,3,1,30.0,2.10,0.63,0.30,1.00,3.7,1.4,0.14,#ERROR!,#ERROR!,Matches
