@@ -116,7 +116,7 @@ def get_lineup_team_mujeres():
     """
     dic_final = {}
     line_up_list = []
-    with open('data//Mundial_Femenil_2019//PaisesYFormaciones.csv', newline='',encoding='utf-8') as csvfile:
+    with open('data//Mundial_Femenil_2019//PaisesYFormaciones.csv', newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
             dic_final[row[0]] = row[1]
@@ -155,10 +155,10 @@ def get_all_data_team_passing_shooting(team):
             if row[0] != "" and row[0] != "Player":
                 name = row[0]
                 pos = row[1]
-                medium = float(row[14])
-                total_medium = float(row[15])
-                large =  float(row[17])
-                total_large = float(row[18])
+                medium = float(row[12])
+                total_medium = float(row[13])
+                large =  float(row[15])
+                total_large = float(row[16])
                 dic_stats = {"passing":{"medium":{"complete":medium,"total":total_medium},
                                         "large":{"complete":large,"total":total_large}
                                         }
@@ -168,7 +168,7 @@ def get_all_data_team_passing_shooting(team):
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
             if row[0] != "" and row[0] != "Player":
-                pos = row[1]
+                pos = row[1].split()[0]
                 shoot = float(row[8])
                 total_shoot = float(row[7])
                 shooting = {"complete":shoot,"total":total_shoot}
@@ -182,7 +182,4 @@ def get_all_data_team_passing_shooting(team):
 """
 
 if __name__ == '__main__':
-    A = combinations(get_lineup_team_hombres(),2)
-    print(len(get_lineup_team_hombres()))
-    #rint(get_lineup_team_mujeres())
-    print("Acabé")
+    print(get_lineup_team_mujeres())
