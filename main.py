@@ -20,28 +20,30 @@ from numpy import mean, sum
 
 
 seed(a=315230372, version=2)
-N = 600
+N = 1000
+alpha = 3.5
 
-pos_dic_433D = {"GK": (3,0),
+
+pos_dic_1352 ={"GK": (3.5,0),
+               "CB": (3.5,1),
+               "CBL": (2,1),
+               "CBR": (5,1),
+               "DM": (3.5,3),
+               "CML": (3,4),
+               "CMR": (4,4),
+               "LW": (2,5),
+               "RW": (5,5),
+               "FWL": (3,6),
+               "FWR": (4,6),
+               "FAIL": (2.5,8),
+               "GOAL": (4.5,8)
+               }
+pos_dic_1433 = {"GK": (3,0),
                "LB": (1,1),
                "CBL": (2,1),
                "CBR": (4,1),
                "RB": (5,1),
-               "DM": (3,2),
-               "CML": (2,3),
-               "CMR": (4,3),
-               "FW": (3,5),
-               "LW": (1,4),
-               "RW": (5,4),
-               "FAIL": (2,7),
-               "GOAL": (4,7)}
-
-pos_dic_433A = {"GK": (3,0),
-               "LB": (1,1),
-               "CBL": (2,1),
-               "CBR": (4,1),
-               "RB": (5,1),
-               "AM": (3,4),
+               "DM": (3,4),
                "CML": (2,3),
                "CMR": (4,3),
                "FW": (3,6),
@@ -49,11 +51,32 @@ pos_dic_433A = {"GK": (3,0),
                "RW": (5,5),
                "FAIL": (2,8),
                "GOAL": (4,8)}
-
-pos_dic_1352 = {}
-pos_dic_1433 = {}
-pos_dic_1442 = {}
-pos_dic_1451 = {}
+pos_dic_1442 = {"GK": (3,0),
+               "LB": (1,1),
+               "CBL": (2,1),
+               "CBR": (4,1),
+               "LR": (5,1),
+               "CML": (2,3),
+               "CMR": (4,3),
+               "FWL": (2.5,6),
+               "FWR": (3.5,6),
+               "LW": (1,5),
+               "RW": (5,5),
+               "FAIL": (2,8),
+               "GOAL": (4,8)}
+pos_dic_1451 = {"GK": (3,0),
+               "LB": (1,1),
+               "CBL": (2,1),
+               "CBR": (4,1),
+               "RB": (5,1),
+               "AM": (3,3),
+               "CML": (2,4),
+               "CMR": (4,4),
+               "FW": (3,6),
+               "LW": (1,5),
+               "RW": (5,5),
+               "FAIL": (2,8),
+               "GOAL": (4,8)}
 
 lineup_by_key = {"1352":pos_dic_1352,
                  "1433":pos_dic_1433,
@@ -186,36 +209,47 @@ def get_directed_list_digraph(dic_team):
 
 def make_table_analysis_lineup_team(hombres, mujeres, lineups):
     dic_lineup = {"1442":dict(number=0, hombres=0, mujeres=0, clustering=[], edge_conec=[], edge_conec_nd=[],
-                                eigen=[], pg=[], pases=[]),
+                                eigen=[], pg=[], pases=[], flujo_n=[],flujo_dic =[] ),
                   "1352": dict(number=0, hombres=0, mujeres=0, clustering=[], edge_conec=[], edge_conec_nd=[],
-                                eigen=[], pg=[], pases=[]),
+                                eigen=[], pg=[], pases=[], flujo_n=[],flujo_dic =[] ),
                   "1451":dict(number=0, hombres=0, mujeres=0, clustering=[], edge_conec=[], edge_conec_nd=[],
-                                eigen=[], pg=[], pases=[]),
+                                eigen=[], pg=[], pases=[], flujo_n=[],flujo_dic =[] ),
                   "1433":dict(number=0, hombres=0, mujeres=0, clustering=[], edge_conec=[], edge_conec_nd=[],
-                                eigen=[], pg=[], pases=[]),
+                                eigen=[], pg=[], pases=[], flujo_n=[],flujo_dic ={} )
                   }
     print("GEN" + "&",
           "EQUIPO" + "&",
           "FORMACION" + "&",
           "p"+ "&",
-          "$c$"+ "&",
+          #"$c$"+ "&",
           "$E_c$"+ "&",
           "$E_{nd}$" + "&",
           "prome_clus" + "&",
           "prome_eigen" + "&",
-          "prome_PG" + "&",
+          #"prome_PG" + "&",
+          "flujo" + "\\" + "\\",
           )
     r = 5
     for team in hombres:
-        Dg = hombres[team]
-        pases = sum([Dg[u][v]['weight'] for u, v in Dg.edges]) / (len(hombres) - 1)
+        #print(team)
+        Dg = hombres[team].copy()
+        plot_g = hombres[team]
+        pases = round(sum([Dg[u][v]['weight'] for u, v in Dg.edges]) / (len(hombres) - 1))
 
         #clique = nx.algorithms.ap
-        edge_conec = nx.edge_connectivity(Dg)
+
         edge_conec_nd = nx.edge_connectivity(Dg.to_undirected())
         ave_clus = round(nx.average_clustering(Dg,weight='weight'),r)
         eigenvector_centrality = mean(list(nx.eigenvector_centrality(Dg,weight='weight').values()))
-        pagerank_centrality = mean(list(nx.pagerank(Dg, weight='weight').values()))
+        pagerank_centrality = mean(list(nx.pagerank(Dg, weight='weight',max_iter=1000,tol=1).values()))
+        max_flow = [0, None]
+        try:
+            max_flow = nx.maximum_flow(Dg, _s="GK", _t="GOAL", capacity="weight")
+        except:
+            continue
+
+        Dg.remove_nodes_from(["GOAL", "FAIL"])
+        edge_conec = nx.edge_connectivity(Dg)
 
         dic_lineup[lineups[team]]["number"] += 1
         dic_lineup[lineups[team]]["hombres"] += 1
@@ -225,6 +259,9 @@ def make_table_analysis_lineup_team(hombres, mujeres, lineups):
         dic_lineup[lineups[team]]["eigen"].append(eigenvector_centrality)
         dic_lineup[lineups[team]]["pg"].append(pagerank_centrality)
         dic_lineup[lineups[team]]["pases"].append(pases)
+        dic_lineup[lineups[team]]["flujo_n"].append(max_flow[0])
+        #print(max_flow[1])
+        #dic_lineup[lineups[team]]["flujo_dic"][team] = max_flow[1]
 
         print("H" +"&" ,
               team +"&" ,
@@ -235,19 +272,31 @@ def make_table_analysis_lineup_team(hombres, mujeres, lineups):
               str(edge_conec_nd) + "&",
               str(ave_clus) + "&",
               str(eigenvector_centrality) + "&",
-              str(pagerank_centrality) + "\\" + "\\"
+              #str(pagerank_centrality) + "&",
+              str(max_flow[0]) + "\\" + "\\"
               )
 
+        plot_fancy_graph(plot_g,team + "----" + lineups[team],lineup_by_key[lineups[team]])
+
     for team in mujeres:
-        Dg = mujeres[team]
-        pases = sum([Dg[u][v]['weight'] for u, v in Dg.edges]) / (len(mujeres) - 1)
+        Dg = mujeres[team].copy()
+        plot_g = mujeres[team]
+        pases = round(sum([Dg[u][v]['weight'] for u, v in Dg.edges]) / (len(mujeres)))
 
         #clique = nx.algorithms.ap
-        edge_conec = nx.edge_connectivity(Dg)
+
         edge_conec_nd = nx.edge_connectivity(Dg.to_undirected())
-        ave_clus = round(nx.average_clustering(Dg,weight='weight'),r)
-        eigenvector_centrality = mean(list(nx.eigenvector_centrality(Dg,weight='weight').values()))
-        pagerank_centrality = mean(list(nx.pagerank(Dg, weight='weight').values()))
+        ave_clus = round(nx.average_clustering(Dg, weight='weight'), r)
+        eigenvector_centrality = mean(list(nx.eigenvector_centrality(Dg, weight='weight').values()))
+        pagerank_centrality = mean(list(nx.pagerank(Dg, weight='weight', max_iter=1000, tol=1).values()))
+        max_flow = [0, None]
+        try:
+            max_flow = nx.maximum_flow(Dg, _s="GK", _t="GOAL", capacity="weight")
+        except:
+            continue
+
+        Dg.remove_nodes_from(["GOAL", "FAIL"])
+        edge_conec = nx.edge_connectivity(Dg)
 
         dic_lineup[lineups[team]]["number"] += 1
         dic_lineup[lineups[team]]["mujeres"] += 1
@@ -255,20 +304,24 @@ def make_table_analysis_lineup_team(hombres, mujeres, lineups):
         dic_lineup[lineups[team]]["edge_conec"].append(edge_conec)
         dic_lineup[lineups[team]]["edge_conec_nd"].append(edge_conec_nd)
         dic_lineup[lineups[team]]["eigen"].append(eigenvector_centrality)
-        dic_lineup[lineups[team]]["pg"].append(pagerank_centrality)
+        #dic_lineup[lineups[team]]["pg"].append(pagerank_centrality)
         dic_lineup[lineups[team]]["pases"].append(pases)
+        dic_lineup[lineups[team]]["flujo_n"].append(max_flow[0])
+        #dic_lineup[lineups[team]]["flujo_dic"][team] = max_flow[1]
 
-        print("M" +"&" ,
-              team +"&" ,
-              lineups[team] + "&" ,
+        print("M" + "&",
+              team + "&",
+              lineups[team] + "&",
               str(pases) + "&",
-              #str(clique) + "&",
+              # str(clique) + "&",
               str(edge_conec) + "&",
               str(edge_conec_nd) + "&",
               str(ave_clus) + "&",
               str(eigenvector_centrality) + "&",
-              str(pagerank_centrality) + "\\" + "\\"
+              # str(pagerank_centrality) + "&",
+              str(max_flow[0]) + "\\" + "\\"
               )
+        plot_fancy_graph(plot_g, team + "----" + lineups[team], lineup_by_key[lineups[team]])
     #POR FORMACIÓN
 
     print("FORMACIÓN" +"&",
@@ -280,7 +333,8 @@ def make_table_analysis_lineup_team(hombres, mujeres, lineups):
           "edge_c" +"&",
           "edge_nd"+"&",
           "eigen"+"&",
-          "pg"+"\\"+"\\")
+          #"pg"+"\\"+"\\")
+          "flujo" + "\\" + "\\")
     for lup in dic_lineup:
         print(lup +"&",
               str(dic_lineup[lup]["number"]) +"&",
@@ -291,7 +345,10 @@ def make_table_analysis_lineup_team(hombres, mujeres, lineups):
               str(mean(dic_lineup[lup]["edge_conec"]))+"&",
               str(mean(dic_lineup[lup]["edge_conec_nd"]))+"&",
               str(mean(dic_lineup[lup]["eigen"]))+"&",
-              str(mean(dic_lineup[lup]["pg"])) +"\\"+"\\")
+              #str(mean(dic_lineup[lup]["pg"]))+"&",
+              str(mean(dic_lineup[lup]["flujo_n"])) + "\\"+"\\")
+
+
 
 
 
@@ -363,10 +420,12 @@ def make_table_analysis_players_team(G,team_data):
 
 
 def plot_fancy_graph(Dg,name_team, formation):
-    weights = [Dg[u][v]['weight'] for u, v in Dg.edges]
+    plt.figure()
+    weights = [Dg[u][v]['weight']/(N/16) for u, v in Dg.edges]
     plt.title(name_team)
     nx.draw(Dg, with_labels="TRUE", width=weights, pos=formation)
-    plt.show()
+
+    plt.savefig('data//images//{}.png'.format(name_team))
 
 
 def plot_degre_distribution(G):
@@ -447,8 +506,29 @@ def game(lineupA,lineupB, teamA, teamB,N):
 
         cobertura = passing["medium"]["complete"] + passing["large"]["complete"] + shooting["complete"]
 
+        enemigos_count = None
+        try:
+            versus_apriori = get_vecinos_versus(g_v, pos)
+            enemigos_count = len(versus_apriori) / 5
+        except:
+            enemigos_count = 0
+        #print(enemigos)
         #DECIDIMOS SI PASE O TIRO A GOL
-        if random() < shooting["complete"] / cobertura:
+        p_pase = shooting["complete"] / cobertura
+        if random() < enemigos_count:
+            #INTERCEPTION APRIORI
+            #print("INTERCEPCIPON")
+            enemigos = None
+            try:
+                versus = get_vecinos_versus(g_v, pos)
+                next_pos = choice(versus)
+            except:
+                team_change = team_graph[p_path.name_team]["versus"]
+                pos_init_change = team_graph[team_change]["init"]
+                p_path = team_graph[team_change]["team_data"][pos_init_change]
+
+
+        elif random() < p_pase:
             #AQUI ES TIRO A GOL
             p = 0
             try:
@@ -488,7 +568,11 @@ def game(lineupA,lineupB, teamA, teamB,N):
 
             cobertura = medium_pass["complete"] + large_pass["complete"]
 
-            if random() < medium_pass["complete"] / cobertura:
+            p_pase_medio = medium_pass["complete"] / cobertura
+
+
+
+            if random() < p_pase_medio:
                 #PASE CORTO MEDIO
                 vecinos = get_vecinos_medium(lineup,pos)
                 next_pos = choice(vecinos)
@@ -661,8 +745,8 @@ if __name__ == '__main__':
     data_by_team_hombres = data_team_genders(team_lineup_hombres)
 
     #POR JUGADORS
-    #for team in data_by_team_hombres:
-    #    make_table_analysis_players_team(final_graps[team] , data_by_team_hombres[team])
+    for team in data_by_team_hombres:
+        make_table_analysis_players_team(final_graps_hombres[team] , data_by_team_hombres[team])
 
 
 
@@ -675,28 +759,14 @@ if __name__ == '__main__':
         final_graps_mujeres[team] = gen_digraph_list_weight(tuplas)
     data_by_team_mujeres = data_team_genders(team_lineup_mujeres)
 
+    # POR JUGADORS
+    print("********************************************** hombre *****************************************")
+    for team in data_by_team_hombres:
+        make_table_analysis_players_team(final_graps_hombres[team], data_by_team_hombres[team])
+    print("********************************************** mujeres *****************************************")
+    for team in data_by_team_mujeres:
+        make_table_analysis_players_team(final_graps_mujeres[team] , data_by_team_mujeres[team])
+
+
     make_table_analysis_lineup_team(final_graps_hombres, final_graps_mujeres,
                                     {**team_lineup_hombres,**team_lineup_mujeres})
-
-
-
-
-    #for team in teams_hombres:
-    #    print(team)
-    #    print(len(teams_hombres[team]))
-    """
-    A = game("433D.csv", "433A.csv", "Pases_EUA.csv", "Pases_Holanda.csv", 1000)
-    #A = game("433D.csv","433A.csv", "Pases_Liverpool.csv","Pases_Tottenham.csv",1000)
-
-    juego = A[1]
-
-    team_view = "Holanda"
-    c = get_directed_list_digraph(juego[team_view])
-    D = gen_digraph_list_weight(c)
-
-    make_table_analysis_players_team(D, A[2][team_view]["team_data"])
-
-    plot_fancy_graph(D,team_view,pos_dic_433A)
-
-    plot_degre_distribution(D)
-    """

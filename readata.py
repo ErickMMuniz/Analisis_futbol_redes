@@ -144,7 +144,7 @@ def get_all_data_team_passing_shooting(team):
     :param team:
     :return: Dictionary
     """
-    print(team)
+    #print(team)
     root = team[6:]
     name_team = root[:-4]
     dic_final = {}
