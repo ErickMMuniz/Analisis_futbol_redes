@@ -9,14 +9,12 @@ lu: 27/04/20
 """
 import collections
 
-from sympy.physics.units import kat
-
 import readata
 import networkx as nx
 import matplotlib.pyplot as plt
 from random import random, choice, seed
 from itertools import combinations
-from numpy import mean, sum
+from numpy import mean, sum, linspace
 
 
 seed(a=315230372, version=2)
@@ -186,6 +184,22 @@ def count_edge_dic(dic_team,edge):
     else:
         dic_team[edge] = 1
 
+def count_pass2GOAL(b_path, listakeys):
+    promteam = {}
+    for key in listakeys:
+        promteam[key] = []
+    for i in range(len(b_path)):
+        goal = desjoin_player_team(b_path[i])[0]
+        if goal == "GOAL":
+            k = 1
+            team = desjoin_player_team(b_path[i])[1]
+            before_pass = desjoin_player_team(b_path[i - k])[1]
+            while team == before_pass:
+                k += 1
+                before_pass = desjoin_player_team(b_path[i - k])[1]
+            promteam[team].append(k)
+    return promteam
+
 def get_directed_list_digraph(dic_team):
     """
     Función auxiliar para obtener una lista de
@@ -199,6 +213,18 @@ def get_directed_list_digraph(dic_team):
         list_final_digraph.append((edge[0],edge[1],{"weight":pases}) )
     return list_final_digraph
 
+def metric_defensive(G):
+    """
+    Función que da nuestra métrica defensiva.
+    :param G: nx.DiGraph
+    :return: dic[NODE] = Aij - Aji
+    """
+    nodes_m = {}
+    d_in = dict(G.in_degree(weight="weight"))
+    d_out = dict(G.out_degree(weight="weight"))
+    for node in G.nodes:
+        nodes_m[node] = d_out[node] - d_in[node]
+    return nodes_m
 
 
 """
@@ -260,6 +286,9 @@ def make_table_analysis_lineup_team(hombres, mujeres, lineups):
         dic_lineup[lineups[team]]["pg"].append(pagerank_centrality)
         dic_lineup[lineups[team]]["pases"].append(pases)
         dic_lineup[lineups[team]]["flujo_n"].append(max_flow[0])
+
+        #prom_pass2goal = True
+
         #print(max_flow[1])
         #dic_lineup[lineups[team]]["flujo_dic"][team] = max_flow[1]
 
@@ -276,7 +305,7 @@ def make_table_analysis_lineup_team(hombres, mujeres, lineups):
               str(max_flow[0]) + "\\" + "\\"
               )
 
-        plot_fancy_graph(plot_g,team + "----" + lineups[team],lineup_by_key[lineups[team]])
+        #plot_fancy_graph(plot_g,team + "----" + lineups[team],lineup_by_key[lineups[team]])
 
     for team in mujeres:
         Dg = mujeres[team].copy()
@@ -321,7 +350,9 @@ def make_table_analysis_lineup_team(hombres, mujeres, lineups):
               # str(pagerank_centrality) + "&",
               str(max_flow[0]) + "\\" + "\\"
               )
-        plot_fancy_graph(plot_g, team + "----" + lineups[team], lineup_by_key[lineups[team]])
+        #plot_fancy_graph(plot_g, team + "----" + lineups[team], lineup_by_key[lineups[team]])
+
+
     #POR FORMACIÓN
 
     print("FORMACIÓN" +"&",
@@ -374,6 +405,9 @@ def make_table_analysis_players_team(G,team_data):
     pagerank_centrality = nx.pagerank(G,weight='weight')
     clustering_data = nx.clustering(G, weight='weight')
 
+    metric_def = metric_defensive(G)
+    set_metric = []
+
     print("------------------------------*******TABLA******----------------------------")
     print("TEAM" + "&",
           "POS"+"&",
@@ -385,7 +419,8 @@ def make_table_analysis_players_team(G,team_data):
           "$E_c$"+"&",
           #"$Katz_c$" + "&",
           "$PR$"+"&",
-          "Clus"+"\\")
+          "Clus"+ "&",
+          "M_{df}"+ "\\")
     for p_pos in team_data:
         player = team_data[p_pos]
         player_name = player.name
@@ -397,7 +432,8 @@ def make_table_analysis_players_team(G,team_data):
         player_eigen_c = str( round(eigenvector_centrality[player_pos],r) ) + "&"
         #player_katz_c = str( round(katz_centrality[player_pos],r) ) + "&"
         player_pagerank = str( round(pagerank_centrality[player_pos],r)) + "&"
-        player_clustering = str( round(clustering_data[player_pos],r)) + "\\" +  "\\"
+        player_clustering = str( round(clustering_data[player_pos],r)) + "&"
+        player_df = str(metric_def[player_pos]) + "\\" + "\\"
         print(player.name_team + "&",
                   player_pos + "&",
                   player_name + "&",
@@ -408,7 +444,10 @@ def make_table_analysis_players_team(G,team_data):
                   player_eigen_c,
                   #player_katz_c,
                   player_pagerank,
-                  player_clustering)
+                  player_clustering,
+                  player_df)
+        set_metric.append(metric_def[player_pos])
+    return set_metric
 
 
 
@@ -657,15 +696,19 @@ def game(lineupA,lineupB, teamA, teamB,N):
                             pos_init_change = team_graph[team_change]["init"]
                             p_path = team_graph[team_change]["team_data"][pos_init_change]
 
-    return b_path, dic_team, team_graph
+    pases_to_goal = count_pass2GOAL(b_path, list(team_graph.keys()))
+
+    return b_path, dic_team, team_graph, pases_to_goal
 
 
 def simulate_hombres():
     team_lineup = readata.get_lineup_team_hombres()
     team_macth = combinations(team_lineup, 2)
     games = {}
+    pases_final = {}
     for team in team_lineup.keys():
         games[team] = []
+        pases_final[team] = []
 
     for macth in team_macth:
         print("JUEGO ---->  <<< ", macth[0], "vs", macth[1] ,">>>")
@@ -677,10 +720,15 @@ def simulate_hombres():
 
         macth_game = game(lineupA, lineupB,teamA, teamB, N)
 
+        pases_to_goal = macth_game[3]
+
         games[macth[0]].append(macth_game[1][macth[0]])
         games[macth[1]].append(macth_game[1][macth[1]])
 
-    return games
+        pases_final[macth[0]] += pases_to_goal[macth[0]]
+        pases_final[macth[1]] += pases_to_goal[macth[1]]
+
+    return games,pases_final
 
 
 
@@ -691,8 +739,10 @@ def simulate_mujeres():
     team_macth = combinations(team_lineup, 2)
 
     games = {}
+    pases_final = {}
     for team in team_lineup.keys():
         games[team] = []
+        pases_final[team] = []
 
     for macth in team_macth:
         print("JUEGO ---->  <<< ", macth[0], "vs", macth[1], ">>>")
@@ -704,10 +754,15 @@ def simulate_mujeres():
 
         macth_game = game(lineupA, lineupB, teamA, teamB, N)
 
+        pases_to_goal = macth_game[3]
+
         games[macth[0]].append(macth_game[1][macth[0]])
         games[macth[1]].append(macth_game[1][macth[1]])
 
-    return games
+        pases_final[macth[0]] += pases_to_goal[macth[0]]
+        pases_final[macth[1]] += pases_to_goal[macth[1]]
+
+    return games,pases_final
 
 def make_unic_grap_team(games_teams):
     dic_final = {}
@@ -735,9 +790,11 @@ def data_team_genders(teams):
 
 if __name__ == '__main__':
 
+    #Se hacen los juegos de hombres
+
     team_lineup_hombres = readata.get_lineup_team_hombres()
     games_hombres = simulate_hombres()
-    final_team_hombres = make_unic_grap_team(games_hombres)
+    final_team_hombres = make_unic_grap_team(games_hombres[0])
     final_graps_hombres = {}
     for team in final_team_hombres:
         tuplas = get_directed_list_digraph(final_team_hombres[team])
@@ -745,14 +802,15 @@ if __name__ == '__main__':
     data_by_team_hombres = data_team_genders(team_lineup_hombres)
 
     #POR JUGADORS
-    for team in data_by_team_hombres:
-        make_table_analysis_players_team(final_graps_hombres[team] , data_by_team_hombres[team])
+    #for team in data_by_team_hombres:
+    #    make_table_analysis_players_team(final_graps_hombres[team] , data_by_team_hombres[team])
 
 
+    #Se hacen los juegos de mujeres.
 
     team_lineup_mujeres = readata.get_lineup_team_mujeres()
     games_mujeres = simulate_mujeres()
-    final_team_mujeres = make_unic_grap_team(games_mujeres)
+    final_team_mujeres = make_unic_grap_team(games_mujeres[0])
     final_graps_mujeres = {}
     for team in final_team_mujeres:
         tuplas = get_directed_list_digraph(final_team_mujeres[team])
@@ -760,13 +818,62 @@ if __name__ == '__main__':
     data_by_team_mujeres = data_team_genders(team_lineup_mujeres)
 
     # POR JUGADORS
+    data_mdef_hombres = None
+    data_mdef_mujeres = None
     print("********************************************** hombre *****************************************")
     for team in data_by_team_hombres:
-        make_table_analysis_players_team(final_graps_hombres[team], data_by_team_hombres[team])
+        data_mdef_hombres = make_table_analysis_players_team(final_graps_hombres[team], data_by_team_hombres[team])
     print("********************************************** mujeres *****************************************")
     for team in data_by_team_mujeres:
-        make_table_analysis_players_team(final_graps_mujeres[team] , data_by_team_mujeres[team])
+        data_mdef_mujeres = make_table_analysis_players_team(final_graps_mujeres[team] , data_by_team_mujeres[team])
 
 
     make_table_analysis_lineup_team(final_graps_hombres, final_graps_mujeres,
                                     {**team_lineup_hombres,**team_lineup_mujeres})
+
+
+    data_pases_hombres = []
+    for list_pass in list(games_hombres[1].values()):
+        data_pases_hombres += list_pass
+
+    data_pases_mujeres = []
+    for list_pass in list(games_mujeres[1].values()):
+        data_pases_mujeres += list_pass
+
+    #####Hombres
+    for team in games_hombres[1]:
+        print(team, mean(games_hombres[1][team]))
+
+    #####Mujeres
+    for team in games_mujeres[1]:
+        print(team, mean(games_mujeres[1][team]))
+
+    bins = linspace(0, 25, 50)
+    #plt.hist(data_pases_hombres,70,color="b")
+    #plt.hist(data_pases_mujeres,70,color="pink")
+
+    plt.hist([data_pases_hombres, data_pases_mujeres], bins, label=['Hombres', 'Mujeres'], density=True)
+    plt.legend(loc='upper right')
+    plt.title("Número de pases necesarios para anotar un gol.")
+    plt.ylabel("Frecuencia")
+    plt.xlabel("Número de pases")
+    plt.show()
+
+    plt.hist([data_mdef_hombres, data_mdef_mujeres], label=['Hombres', 'Mujeres'], density=False)
+    plt.legend(loc='upper right')
+    plt.title("Métrica '$M_{df}$' ")
+    plt.ylabel("Frecuencia")
+    plt.xlabel("'$M_{df}$'")
+    plt.show()
+
+    plt.hist(data_mdef_hombres,color="blue",density=True)
+    plt.title("Métrica $M_{df}$ Hombres ")
+    plt.ylabel("Frecuencia")
+    plt.xlabel("'$M_{df}$'")
+    plt.show()
+
+    plt.hist(data_mdef_mujeres, color="pink", density=True)
+    plt.title("Métrica $M_{df}$ Mujeres ")
+    plt.ylabel("Frecuencia")
+    plt.xlabel("'$M_{df}$'")
+    plt.show()
