@@ -184,6 +184,12 @@ def count_edge_dic(dic_team,edge):
     else:
         dic_team[edge] = 1
 
+def get_edges_shortpath(path):
+    list_edges = list()
+    for i in range(len(path)-1):
+        list_edges.append((path[i],path[i+1]))
+    return  list_edges
+
 def count_pass2GOAL(b_path, listakeys):
     promteam = {}
     for key in listakeys:
@@ -260,6 +266,7 @@ def make_table_analysis_lineup_team(hombres, mujeres, lineups):
         #print(team)
         Dg = hombres[team].copy()
         plot_g = hombres[team]
+        path_final = nx.shortest_path(Dg, source="GK", target="GOAL", weight="weight")
         pases = round(sum([Dg[u][v]['weight'] for u, v in Dg.edges]) / (len(hombres) - 1))
 
         #clique = nx.algorithms.ap
@@ -305,12 +312,23 @@ def make_table_analysis_lineup_team(hombres, mujeres, lineups):
               str(max_flow[0]) + "\\" + "\\"
               )
 
+        #GRAFICAMOS POR FORMACIÓN
         #plot_fancy_graph(plot_g,team + "----" + lineups[team],lineup_by_key[lineups[team]])
 
+
+        #GRAFICA ACUMULADA
+        list_path = get_edges_shortpath(path_final)
+        new_g = nx.Graph()
+        new_g.add_edges_from(list_path)
+        nx.draw(new_g, pos=lineup_by_key[lineups[team]])
+
+    plt.title("Hombres caminos cortos")
+    plt.show()
     for team in mujeres:
         Dg = mujeres[team].copy()
         plot_g = mujeres[team]
         pases = round(sum([Dg[u][v]['weight'] for u, v in Dg.edges]) / (len(mujeres)))
+        path_final = nx.shortest_path(Dg, source="GK", target="GOAL", weight="weight")
 
         #clique = nx.algorithms.ap
 
@@ -352,7 +370,13 @@ def make_table_analysis_lineup_team(hombres, mujeres, lineups):
               )
         #plot_fancy_graph(plot_g, team + "----" + lineups[team], lineup_by_key[lineups[team]])
 
+        # GRAFICA ACUMULADA
+        list_path = get_edges_shortpath(path_final)
+        new_g = nx.Graph()
+        new_g.add_edges_from(list_path)
+        nx.draw(new_g, pos=lineup_by_key[lineups[team]])
 
+    plt.show()
     #POR FORMACIÓN
 
     print("FORMACIÓN" +"&",
