@@ -1,6 +1,6 @@
-#FACULTAD DE CIENCIAS, UNAM
+# Facultad de Ciencias, UNAM
 
-##SEMINARIO DE MATEMÁTICAS APLICADAS
+## Seminario de Matemáticas Aplicadas, semestre 202032
 
 -MUÑIZ MORALES ERICK
 -GUZMÁN MORALES LÁZARO ABRAHAM
