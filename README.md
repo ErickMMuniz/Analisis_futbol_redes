@@ -19,5 +19,7 @@ manera a sus jugadores, haciendo una distinción en el modo de juego de ambos se
 ### Paqueterías:
 
 Python >= 3.0.0
+
 Matplotlib
+
 NetworkX
